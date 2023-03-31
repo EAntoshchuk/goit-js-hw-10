@@ -1,5 +1,5 @@
 import './css/styles.css';
-import country_card from './templates/country-card.hbs';
+// import country_card from './templates/country-card.hbs';
 import Notiflix, { Notify } from 'notiflix';
 import debounce from 'lodash.debounce';
 
@@ -7,6 +7,7 @@ const BASE_URL = 'https://restcountries.com/v3.1/name/';
 const options = {
   fields: 'capital,population,flags,languages',
 };
+
 const DEBOUNCE_DELAY = 300;
 const refs = {
   searchBox: document.querySelector('#search-box'),
