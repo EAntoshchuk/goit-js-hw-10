@@ -1,60 +1,66 @@
-import './css/styles.css';
-// import country_card from './templates/country-card.hbs';
 import Notiflix, { Notify } from 'notiflix';
 import debounce from 'lodash.debounce';
+import './css/styles.css';
+import country_card from '../src/templates/country-card.hbs';
+import country_list from '../src/templates/country-list.hbs';
+import getRefs from './js/get-refs';
 
-const BASE_URL = 'https://restcountries.com/v3.1/name/';
+const BASE_URL = 'https://restcountries.com/v3.1/name';
 const options = {
-  fields: 'capital,population,flags,languages',
+  fields: 'name,capital,population,flags,languages',
 };
 
 const DEBOUNCE_DELAY = 300;
-const refs = {
-  searchBox: document.querySelector('#search-box'),
-  countryList: document.querySelector('.country-list'),
-  countryInfo: document.querySelector('.country-info'),
-};
+const refs = getRefs();
 
 refs.searchBox.addEventListener(
   'input',
-  debounce(event => {
-    searchCountry();
-  }, DEBOUNCE_DELAY)
+  debounce(searchCountry, DEBOUNCE_DELAY)
 );
 
 function searchCountry(event) {
   const seachedCountry = refs.searchBox.value.trim();
-  if (seachedCountry === '') {
-    Notify.warning('Make a searh request');
-    return;
-  }
-  if (fetchCountry(refs.searchBox.value).length >= 10) {
-    Notify.info('Too many matches found. Please enter a more specific name.');
-  } else
-    fetchCountry(refs.searchBox.value).then(data => {
-      refs.countryInfo.innerHTML = countryInfo(data);
+
+  fetchCountry(seachedCountry)
+    .then(data => {
+      if (seachedCountry.length < 2) {
+        Notiflix.Notify.warning('Make a searh request');
+        return;
+      } else if (data.length > 10) {
+        Notiflix.Notify.info(
+          'Too many matches found. Please enter a more specific name.'
+        );
+        return;
+      } else if (seachedCountry.length >= 2 && data.length <= 10) {
+        return renderCountryList(data);
+      }
+      return renderCountryInfo(data);
+    })
+    .catch(error => {
+      console.log(error);
+      Notiflix.Notify.failure('Oops, there is no country with that name');
     });
 }
 
-// fetchCountry()
-//   .then()
-//   .catch(error => console.log(error));
+function renderCountryInfo(country) {
+  const countryInfoMarkup = country.map(
+    ({ name, capital, population, flags, languages }) => country_card
+  );
+  refs.countryInfo.innerHTML = countryInfoMarkup;
+}
 
-function fetchCountry() {
-  const nameCountry = refs.searchBox.value;
-  return fetch(`${BASE_URL}${nameCountry}?${options}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log(data);
-      const markup = country_card(data);
-      console.log(markup);
-    })
-    .catch(error => {
-      console.warn(error);
-    });
+function renderCountryList(country) {
+  const countryListMarkup = country.map(({ name, flags }) => country_list);
+  refs.countryList.innerHTML = countryListMarkup;
+}
+
+function fetchCountry(countryName) {
+  return fetch(
+    `${BASE_URL}/${countryName}?fields=name,capital,population,flags,languages`
+  ).then(response => {
+    if (!response.ok) {
+      throw new Error(response.status);
+    }
+    return response.json();
+  });
 }
