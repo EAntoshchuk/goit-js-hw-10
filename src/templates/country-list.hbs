@@ -1,5 +1,10 @@
 {{#each this}}
   <ul class='country-list'></ul>
-  <li><img src='{{this.flags.svg}}' alt='Flag of {{this.name.official}}' />
-    <p>{{this.name.common}}</p></li>
+  <li style='display: flex;'>
+    <img
+      style='width: 70px; height: 50px;'
+      src='{{this.flags.svg}}'
+      alt='Flag of {{this.name.official}}'
+    />
+    <p style='margin-left: 20px;'>{{this.name.common}}</p></li>
 {{/each}}
